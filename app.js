@@ -108,7 +108,7 @@ app.post("/admins", async (request, response) => {
   console.log(hashedPwd);
   // have to create the admin here
   try {
-    const admin = await Admins.create({
+    const admin = await Admins.createAdmin({
       firstName: request.body.firstName,
       lastName: request.body.lastName,
       email: request.body.email,
