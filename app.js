@@ -9,7 +9,7 @@ var cookieParser = require("cookie-parser");
 app.use(bodyParser.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser("shh! some secret string"));
-app.use(csrf("manaswini_s_online_voting_app_27", ["POST", "PUT", "DELETE"]));
+app.use(csrf("csrf_key_for_kousar's_voting_app", ["POST", "PUT", "DELETE"]));
 
 const path = require("path");
 const passport = require("passport");
@@ -53,10 +53,10 @@ passport.use(
     },
     (username, password, done) => {
       Admins.findOne({ where: { email: username } })
-        .then(async (admin) => {
-          const result = await bcrypt.compare(password, admin.password);
+        .then(async (user) => {
+          const result = await bcrypt.compare(password, user.password);
           if (result) {
-            return done(null, admin);
+            return done(null, user);
           } else {
             return done(null, false, { message: "Invalid password" });
           }
@@ -67,15 +67,15 @@ passport.use(
     }
   )
 );
-passport.serializeUser((admin, done) => {
-  console.log("Serializing user in session", admin.id);
-  done(null, admin.id);
+passport.serializeUser((user, done) => {
+  console.log("Serializing user in session", user.id);
+  done(null, user.id);
 });
 
 passport.deserializeUser((id, done) => {
   Admins.findByPk(id)
-    .then((admin) => {
-      done(null, admin);
+    .then((user) => {
+      done(null, user);
     })
     .catch((error) => {
       done(error, null);
@@ -157,12 +157,12 @@ app.get(
   "/elections",
   connectEnsureLogin.ensureLoggedIn(),
   async (request, response) => {
-    let loggedInUser = request.admin.firstName + " " + request.admin.lastName;
+    let loggedInUser = request.user.firstName + " " + request.user.lastName;
     try {
-      const elections = await Elections.electionsList(request.admin.id);
+      const elections = await Elections.electionsList(request.user.id);
       if (request.accepts("html")) {
         response.render("elections", {
-          title: "Online Voting Platform",
+          title: "Election page",
           userName: loggedInUser,
           elections,
         });
@@ -177,6 +177,67 @@ app.get(
     }
   }
 );
+
+app.post(
+  "/elections",
+  connectEnsureLogin.ensureLoggedIn(),
+  async (request, response) => {
+    if (request.body.electionName.length < 5) {
+      request.flash("error", "Election name length should be atleast 5");
+      return response.redirect("/elections/create");
+    }
+    try {
+      await Elections.newElection({
+        electionName: request.body.electionName,
+        adminId: request.user.id,
+      });
+      return response.redirect("/elections");
+    } catch (error) {
+      console.log(error);
+      return response.status(422).json(error);
+    }
+  }
+);
+app.get(
+  "/elections/create",
+  connectEnsureLogin.ensureLoggedIn(),
+  async (request, response) => {
+    return response.render("create_election", {
+      title: "Create an election",
+      csrfToken: request.csrfToken(),
+    });
+  }
+);
+
+app.get(
+  "/elections/:id",
+  connectEnsureLogin.ensureLoggedIn(),
+  async (request, response) => {
+    try {
+      const election = await Elections.getElection(request.params.id);
+      const numberOfQuestions = await Questions.getNumberOfQuestions(
+        request.params.id
+      );
+      return response.render("election_managepage", {
+        id: request.params.id,
+        title: election.electionName,
+        numberOfQuestions,
+      });
+    } catch (error) {
+      console.log(error);
+      return response.status(422).json(error);
+    }
+  }
+);
+
+app.get("/signout", (request, response, next) => {
+  request.logout((err) => {
+    if (err) {
+      return next(err);
+    }
+    response.redirect("/");
+  });
+});
 
 app.post(
   "/session",

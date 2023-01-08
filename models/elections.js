@@ -10,20 +10,24 @@ module.exports = (sequelize, DataTypes) => {
     static associate(models) {
       // define association here
       Elections.belongsTo(models.Admins, {
-        foreignKey: "adminID",
+        foreignKey: "adminId",
+      });
+
+      Election.hasMany(models.Questions, {
+        foreignKey: "electionID",
       });
     }
 
-    static newElection({ electionName, adminID }) {
+    static newElection({ electionName, adminId }) {
       return this.create({
         electionName,
-        adminID,
+        adminId,
       });
     }
-    static electionsList(adminID) {
+    static electionsList(adminId) {
       return this.findAll({
         where: {
-          adminID,
+          adminId,
         },
         order: [["id", "ASC"]],
       });
