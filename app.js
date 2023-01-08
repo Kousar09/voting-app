@@ -3,7 +3,7 @@
 const express = require("express");
 var csrf = require("tiny-csrf");
 const app = express();
-const { Admins } = require("./models");
+const { Admins, Elections } = require("./models");
 const bodyParser = require("body-parser");
 var cookieParser = require("cookie-parser");
 app.use(bodyParser.json());
@@ -119,7 +119,7 @@ app.post("/admins", async (request, response) => {
         console.log(err);
         response.redirect("/");
       } else {
-        response.redirect("/");
+        response.redirect("/elections");
       }
     });
   } catch (error) {
@@ -153,6 +153,31 @@ app.get("/", async (request, response) => {
   });
 });
 
+app.get(
+  "/elections",
+  connectEnsureLogin.ensureLoggedIn(),
+  async (request, response) => {
+    let loggedInUser = request.admin.firstName + " " + request.admin.lastName;
+    try {
+      const elections = await Elections.electionsList(request.admin.id);
+      if (request.accepts("html")) {
+        response.render("elections", {
+          title: "Online Voting Platform",
+          userName: loggedInUser,
+          elections,
+        });
+      } else {
+        return response.json({
+          elections,
+        });
+      }
+    } catch (error) {
+      console.log(error);
+      return response.status(422).json(error);
+    }
+  }
+);
+
 app.post(
   "/session",
   passport.authenticate("local", {
@@ -160,7 +185,7 @@ app.post(
     failureFlash: true,
   }),
   (request, response) => {
-    response.redirect("/");
+    response.redirect("/elections");
   }
 );
 
