@@ -3,7 +3,7 @@
 const express = require("express");
 var csrf = require("tiny-csrf");
 const app = express();
-const { Admins, Elections, Questions } = require("./models");
+const { Admins, Elections, Questions, Options } = require("./models");
 const bodyParser = require("body-parser");
 var cookieParser = require("cookie-parser");
 app.use(bodyParser.json());
@@ -134,7 +134,7 @@ app.get("/login", (request, response) => {
     return response.redirect("/elections");
   }
   response.render("login", {
-    title: "Login page",
+    title: "Signin page",
     csrfToken: request.csrfToken(),
   });
 });
@@ -239,7 +239,7 @@ app.get(
       const election = await Elections.getElection(request.params.id);
       const questions = await Questions.questionsList(request.params.id);
       if (request.accepts("html")) {
-        return response.render("questions", {
+        return response.render("questions_view", {
           title: election.electionName,
           id: request.params.id,
           questions: questions,
@@ -268,14 +268,7 @@ app.get(
   }
 );
 
-//   app.post("/elections/create", connectEnsureLogin.ensureLoggedIn(),async (request,response) =>{
-//     if(request.body.electionName.length <5){
-//         request.flash("error", "election name length should be atleast 5");
-//         return response.redirect(`/elections/create`)
-//     }
-//   })
-
-//posting the question
+//creating the question
 app.post(
   "/elections/:id/questions/create",
   connectEnsureLogin.ensureLoggedIn(),
@@ -295,26 +288,6 @@ app.post(
       return response.redirect(
         `/elections/${request.params.id}/questions/${question.id}`
       );
-    } catch (error) {
-      console.log(error);
-      return response.status(422).json(error);
-    }
-  }
-);
-
-app.get(
-  "/elections/:electionID/questions/:questionID/edit",
-  connectEnsureLogin.ensureLoggedIn(),
-  async (request, response) => {
-    try {
-      const question = await Questions.getQuestion(request.params.questionId);
-      return response.render("update_question", {
-        electionId: request.params.electionId,
-        questionId: request.params.questionId,
-        questionTitle: question.questionName,
-        Description: question.description,
-        csrfToken: request.csrfToken(),
-      });
     } catch (error) {
       console.log(error);
       return response.status(422).json(error);

@@ -50,7 +50,7 @@ describe("voting app Test Suite", () => {
     expect(res.statusCode).toBe(302);
   });
 
-  test("to login as a admin", async () => {
+  test("test for admin login", async () => {
     res = await agent.get("/elections");
     expect(res.statusCode).toBe(200);
     await login(agent, "kousar@gmail.com", "123456789");
@@ -58,7 +58,7 @@ describe("voting app Test Suite", () => {
     expect(res.statusCode).toBe(200);
   });
 
-  test("test  for admin signout", async () => {
+  test("test for admin signout", async () => {
     let res = await agent.get("/elections");
     expect(res.statusCode).toBe(200);
     res = await agent.get("/signout");
