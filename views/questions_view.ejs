@@ -28,13 +28,13 @@
         <div class="flex-auto">
             <div class="mx-4">  
                 <p class="text-purple-600"><%= (questions.length==0)?"You haven't added any questions yet!":"" %></p>
-                <div class="grid grid-cols-8 gap-35 border text-orange-400 ">
+                <div class="grid grid-cols-6 gap-35 border text-black-400 ">
                     <div class="col-span-3 border px-3">            
                         <p class="py-2 text-2xl">Question</p>   
                                          
                     </div>
                     <div class="col-span-3 border">            
-                        <p class="py-2 px-10 text-2xl">Description</p>   
+                        <p class="py-2 text-2xl">Description</p>   
                                          
                     </div>
                 </div>
@@ -47,7 +47,7 @@
                                     <a href="/elections/<%= id %>/questions/<%= questions[i].id %>" class="my-2 text-lg text-purple-600 "><%= questions[i].questionName %></a>
                                 </div>
                                 <div>                                    
-                                    <p class="text-purple-800 text-md my-2"><%= questions[i].description %></p>
+                                    <p class="text-purple-800 text-md text-lg text-justify"><%= questions[i].description %></p>
                                 </div>
                                 
                                     

@@ -46,7 +46,7 @@ module.exports = (sequelize, DataTypes) => {
       return this.create({
         questionName,
         description,
-        electionsId,
+        electionId,
       });
     }
   }
