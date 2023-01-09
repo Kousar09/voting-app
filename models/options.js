@@ -1,7 +1,7 @@
 "use strict";
 const { Model } = require("sequelize");
 module.exports = (sequelize, DataTypes) => {
-  class Elections extends Model {
+  class Options extends Model {
     /**
      * Helper method for defining associations.
      * This method is not a part of Sequelize lifecycle.
@@ -9,56 +9,55 @@ module.exports = (sequelize, DataTypes) => {
      */
     static associate(models) {
       // define association here
-      Elections.belongsTo(models.Admins, {
-        foreignKey: "adminId",
-      });
-
-      Elections.hasMany(models.Questions, {
-        foreignKey: "electionId",
+      Options.belongsTo(models.Questions, {
+        foreignKey: "questionId",
+        onDelete: "CASCADE",
       });
     }
 
-    static newElection({ electionName, adminId }) {
-      return this.create({
-        electionName,
-        adminId,
-      });
-    }
-    static electionsList(adminId) {
+    static optionsList(questionId) {
       return this.findAll({
         where: {
-          adminId,
+          questionId,
         },
         order: [["id", "ASC"]],
       });
     }
 
-    static getElection(id) {
+    static getOption(id) {
       return this.findOne({
         where: {
           id,
         },
       });
     }
+
+    static newOption({ option, questionId }) {
+      return this.create({
+        option,
+        questionId,
+      });
+    }
+
+    static deleteOption(id) {
+      return this.destroy({
+        where: {
+          id,
+        },
+      });
+    }
   }
-  Elections.init(
+  Options.init(
     {
-      electionName: {
+      option: {
         type: DataTypes.STRING,
         allowNull: false,
-        validate: {
-          notNull: true,
-        },
-      },
-      ongoing: {
-        type: DataTypes.BOOLEAN,
-        defaultValue: false,
       },
     },
     {
       sequelize,
-      modelName: "Elections",
+      modelName: "Options",
     }
   );
-  return Elections;
+  return Options;
 };

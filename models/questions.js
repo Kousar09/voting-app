@@ -9,8 +9,44 @@ module.exports = (sequelize, DataTypes) => {
      */
     static associate(models) {
       // define association here
+      Questions.belongsTo(models.Elections, {
+        foreignKey: "electionId",
+      });
       Questions.hasMany(models.Options, {
-        foreignKey: "questionID",
+        foreignKey: "questionId",
+      });
+    }
+
+    static async noOfQuestions(electionId) {
+      return await this.count({
+        where: {
+          electionId,
+        },
+      });
+    }
+
+    static async getQuestion(id) {
+      return await this.findOne({
+        where: {
+          id,
+        },
+      });
+    }
+
+    static async questionsList(electionId) {
+      return await this.findAll({
+        where: {
+          electionId,
+        },
+        order: [["id", "ASC"]],
+      });
+    }
+
+    static newQuestion({ questionName, description, electionId }) {
+      return this.create({
+        questionName,
+        description,
+        electionsId,
       });
     }
   }

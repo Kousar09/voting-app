@@ -3,7 +3,7 @@
 const express = require("express");
 var csrf = require("tiny-csrf");
 const app = express();
-const { Admins, Elections } = require("./models");
+const { Admins, Elections, Questions } = require("./models");
 const bodyParser = require("body-parser");
 var cookieParser = require("cookie-parser");
 app.use(bodyParser.json());
@@ -29,7 +29,7 @@ app.use(express.static(path.join(__dirname, "public")));
 
 app.use(
   session({
-    secret: "my-super-secret-key-27282069152514",
+    secret: "my-super-secret-key-090200205011997",
     cookie: {
       maxAge: 24 * 60 * 60 * 1000, //24 hrs
     },
@@ -130,8 +130,11 @@ app.post("/admins", async (request, response) => {
 });
 
 app.get("/login", (request, response) => {
+  if (request.user) {
+    return response.redirect("/elections");
+  }
   response.render("login", {
-    title: "Sign in",
+    title: "Login page",
     csrfToken: request.csrfToken(),
   });
 });
@@ -203,7 +206,7 @@ app.get(
   connectEnsureLogin.ensureLoggedIn(),
   async (request, response) => {
     return response.render("create_election", {
-      title: "Create an election",
+      title: "Creating election",
       csrfToken: request.csrfToken(),
     });
   }
@@ -215,13 +218,102 @@ app.get(
   async (request, response) => {
     try {
       const election = await Elections.getElection(request.params.id);
-      const numberOfQuestions = await Questions.getNumberOfQuestions(
-        request.params.id
-      );
+      const noOfQuestions = await Questions.noOfQuestions(request.params.id);
       return response.render("election_managepage", {
         id: request.params.id,
         title: election.electionName,
-        numberOfQuestions,
+        noOfQuestions,
+      });
+    } catch (error) {
+      console.log(error);
+      return response.status(422).json(error);
+    }
+  }
+);
+
+app.get(
+  "/elections/:id/questions",
+  connectEnsureLogin.ensureLoggedIn(),
+  async (request, response) => {
+    try {
+      const election = await Elections.getElection(request.params.id);
+      const questions = await Questions.questionsList(request.params.id);
+      if (request.accepts("html")) {
+        return response.render("questions", {
+          title: election.electionName,
+          id: request.params.id,
+          questions: questions,
+          csrfToken: request.csrfToken(),
+        });
+      } else {
+        return response.json({
+          questions,
+        });
+      }
+    } catch (error) {
+      console.log(error);
+      return response.status(422).json(error);
+    }
+  }
+);
+
+app.get(
+  "/elections/:id/questions/create",
+  connectEnsureLogin.ensureLoggedIn(),
+  async (request, response) => {
+    return response.render("create_question", {
+      id: request.params.id,
+      csrfToken: request.csrfToken(),
+    });
+  }
+);
+
+//   app.post("/elections/create", connectEnsureLogin.ensureLoggedIn(),async (request,response) =>{
+//     if(request.body.electionName.length <5){
+//         request.flash("error", "election name length should be atleast 5");
+//         return response.redirect(`/elections/create`)
+//     }
+//   })
+
+//posting the question
+app.post(
+  "/elections/:id/questions/create",
+  connectEnsureLogin.ensureLoggedIn(),
+  async (request, response) => {
+    if (request.body.questionName.length < 5) {
+      request.flash("error", "question length should be atleast 5");
+      return response.redirect(
+        `/elections/${request.params.id}/questions/create`
+      );
+    }
+    try {
+      const question = await Questions.newQuestion({
+        question: request.body.questionName,
+        description: request.body.description,
+        electionId: request.params.id,
+      });
+      return response.redirect(
+        `/elections/${request.params.id}/questions/${question.id}`
+      );
+    } catch (error) {
+      console.log(error);
+      return response.status(422).json(error);
+    }
+  }
+);
+
+app.get(
+  "/elections/:electionID/questions/:questionID/edit",
+  connectEnsureLogin.ensureLoggedIn(),
+  async (request, response) => {
+    try {
+      const question = await Questions.getQuestion(request.params.questionId);
+      return response.render("update_question", {
+        electionId: request.params.electionId,
+        questionId: request.params.questionId,
+        questionTitle: question.questionName,
+        Description: question.description,
+        csrfToken: request.csrfToken(),
       });
     } catch (error) {
       console.log(error);
