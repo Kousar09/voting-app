@@ -73,7 +73,7 @@ describe("voting app Test Suite", () => {
     const res = await agent.get("/elections/create");
     const csrfToken = extractCsrfToken(res);
     const response = await agent.post("/elections").send({
-      electionName: "head boy",
+      electionName: "election1",
       _csrf: csrfToken,
     });
     expect(response.statusCode).toBe(302);
