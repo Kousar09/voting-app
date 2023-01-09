@@ -130,7 +130,13 @@ app.post("/admins", async (request, response) => {
 });
 
 app.get("/login", (request, response) => {
-  response.render("login", { title: "Login", csrfToken: request.csrfToken() });
+  if (request.user) {
+    return response.redirect("/elections");
+  }
+  response.render("login", {
+    title: "Sign in page",
+    csrfToken: request.csrfToken(),
+  });
 });
 
 app.get("/signout", (request, response, next) => {
