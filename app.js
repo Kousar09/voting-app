@@ -130,13 +130,7 @@ app.post("/admins", async (request, response) => {
 });
 
 app.get("/login", (request, response) => {
-  if (request.user) {
-    return response.redirect("/elections");
-  }
-  response.render("login", {
-    title: "Signin page",
-    csrfToken: request.csrfToken(),
-  });
+  response.render("login", { title: "Login", csrfToken: request.csrfToken() });
 });
 
 app.get("/signout", (request, response, next) => {
@@ -150,10 +144,14 @@ app.get("/signout", (request, response, next) => {
 });
 
 app.get("/", async (request, response) => {
-  response.render("index", {
-    title: "Voting App",
-    csrfToken: request.csrfToken(),
-  });
+  if (request.user) {
+    response.redirect("/elections");
+  } else {
+    response.render("index", {
+      title: "Voting APP",
+      csrfToken: request.csrfToken(),
+    });
+  }
 });
 
 app.get(
