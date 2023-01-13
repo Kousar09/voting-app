@@ -89,46 +89,6 @@ app.get("/signup", (request, response) => {
   });
 });
 
-app.post("/admins", async (request, response) => {
-  //we are using hashedpw to encrypt
-  if (!request.body.firstName) {
-    request.flash("error", "Please enter first name");
-    return response.redirect("/signup");
-  }
-  if (!request.body.email) {
-    request.flash("error", "Please enter email");
-    return response.redirect("/signup");
-  }
-  if (!request.body.password) {
-    request.flash("error", "please enter password");
-    return response.redirect("/signup");
-  }
-
-  const hashedPwd = await bcrypt.hash(request.body.password, saltRounds);
-  console.log(hashedPwd);
-  // have to create the admin here
-  try {
-    const admin = await Admins.createAdmin({
-      firstName: request.body.firstName,
-      lastName: request.body.lastName,
-      email: request.body.email,
-      password: hashedPwd,
-    });
-    request.login(admin, (err) => {
-      if (err) {
-        console.log(err);
-        response.redirect("/");
-      } else {
-        response.redirect("/elections");
-      }
-    });
-  } catch (error) {
-    console.log(error);
-    request.flash("error", "email already registered");
-    return response.redirect("/signup");
-  }
-});
-
 app.get("/login", (request, response) => {
   if (request.user) {
     return response.redirect("/elections");
@@ -185,26 +145,6 @@ app.get(
   }
 );
 
-app.post(
-  "/elections",
-  connectEnsureLogin.ensureLoggedIn(),
-  async (request, response) => {
-    if (request.body.electionName.length < 5) {
-      request.flash("error", "Election name length should be atleast 5");
-      return response.redirect("/elections/create");
-    }
-    try {
-      await Elections.newElection({
-        electionName: request.body.electionName,
-        adminId: request.user.id,
-      });
-      return response.redirect("/elections");
-    } catch (error) {
-      console.log(error);
-      return response.status(422).json(error);
-    }
-  }
-);
 app.get(
   "/elections/create",
   connectEnsureLogin.ensureLoggedIn(),
@@ -272,6 +212,67 @@ app.get(
   }
 );
 
+app.post("/admins", async (request, response) => {
+  //we are using hashedpw to encrypt
+  if (!request.body.firstName) {
+    request.flash("error", "Please enter first name");
+    return response.redirect("/signup");
+  }
+  if (!request.body.email) {
+    request.flash("error", "Please enter email");
+    return response.redirect("/signup");
+  }
+  if (!request.body.password) {
+    request.flash("error", "please enter password");
+    return response.redirect("/signup");
+  }
+
+  const hashedPwd = await bcrypt.hash(request.body.password, saltRounds);
+  console.log(hashedPwd);
+  // have to create the admin here
+  try {
+    const admin = await Admins.createAdmin({
+      firstName: request.body.firstName,
+      lastName: request.body.lastName,
+      email: request.body.email,
+      password: hashedPwd,
+    });
+    request.login(admin, (err) => {
+      if (err) {
+        console.log(err);
+        response.redirect("/");
+      } else {
+        response.redirect("/elections");
+      }
+    });
+  } catch (error) {
+    console.log(error);
+    request.flash("error", "email already registered");
+    return response.redirect("/signup");
+  }
+});
+
+app.post(
+  "/elections",
+  connectEnsureLogin.ensureLoggedIn(),
+  async (request, response) => {
+    if (request.body.electionName.length < 5) {
+      request.flash("error", "Election name length should be atleast 5");
+      return response.redirect("/elections/create");
+    }
+    try {
+      await Elections.newElection({
+        electionName: request.body.electionName,
+        adminId: request.user.id,
+      });
+      return response.redirect("/elections");
+    } catch (error) {
+      console.log(error);
+      return response.status(422).json(error);
+    }
+  }
+);
+
 //creating the question
 app.post(
   "/elections/:id/questions/create",
@@ -292,15 +293,6 @@ app.post(
     }
   }
 );
-
-app.get("/signout", (request, response, next) => {
-  request.logout((err) => {
-    if (err) {
-      return next(err);
-    }
-    response.redirect("/");
-  });
-});
 
 app.post(
   "/session",

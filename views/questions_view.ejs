@@ -28,34 +28,44 @@
         <div class="flex-auto">
             <div class="mx-4">  
                 <p class="text-purple-600"><%= (questions.length==0)?"You haven't added any questions yet!":"" %></p>
-                <div class="grid grid-cols-6 gap-35 border text-black-400 ">
-                    <div class="col-span-3 border px-3">            
-                        <p class="py-2 text-2xl">Question</p>   
-                                         
+                <div class="flex flex-col">
+                    <div class="overflow-x-auto sm:-mx-6 lg:-mx-8">
+                      <div class="py-2 inline-block min-w-full sm:px-6 lg:px-8">
+                        <div class="overflow-hidden">
+                          <table class="min-w-full">
+                            <thead class="bg-white border-b">
+                              <tr>
+                                <th scope="col" class="text-sm font-medium text-gray-900 px-6 py-4 text-left">
+                                  Q.NO
+                                </th>
+                                <th scope="col" class="text-sm font-medium text-gray-900 px-6 py-4 text-left">
+                                  Question
+                                </th>
+                                <th scope="col" class="text-sm font-medium text-gray-900 px-6 py-4 text-left">
+                                  Description
+                                </th>
+                              </tr>
+                            </thead>
+                            <tbody>
+                                <% for (let i=0; i<questions.length; i++) { %>
+                              <tr class="bg-white border-b transition duration-300 ease-in-out hover:bg-gray-100">
+                                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900"><% i+1 %></td>
+                                <td class="text-sm text-gray-900 font-light px-6 py-4 whitespace-nowrap">
+                                </td>
+                                <td class="text-sm text-gray-900 font-light px-6 py-4 whitespace-nowrap">
+                                  <a href="/elections/<%= id %>/questions/<%= questions[i].id %>"><%= questions[i].questionName %></a>
+                                </td>
+                                <td class="text-sm text-gray-900 font-light px-6 py-4 whitespace-nowrap">
+                                  <%questions[i].description %>
+                                </td>
+                              </tr>
+                              <% } %>
+                            </tbody>
+                          </table>
+                        </div>
+                      </div>
                     </div>
-                    <div class="col-span-3 border">            
-                        <p class="py-2 text-2xl">Description</p>   
-                                         
-                    </div>
-                </div>
-
-                <ol class="list-decimal">
-                    <% for (let i=0; i<questions.length; i++) { %>
-                        <li>
-                            <div class="flex justify-between items-center w-full my-2 px-2 py-1 rounded hover:bg-purple-50">
-                                <div>
-                                    <a href="/elections/<%= id %>/questions/<%= questions[i].id %>" class="my-2 text-lg text-purple-600 "><%= questions[i].questionName %></a>
-                                </div>
-                                <div>                                    
-                                    <p class="text-purple-800 text-md text-lg text-justify"><%= questions[i].description %></p>
-                                </div>
-                                
-                                    
-                                </div>
-                            </div>
-                        </li>
-                    <% } %>
-                </ol>
+                  </div>
             </div>
         </div>
     </div>
