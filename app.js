@@ -105,7 +105,7 @@ app.get("/signout", (request, response, next) => {
     if (err) {
       return next(err);
     }
-    response.redirect("/");
+    response.redirect("/login");
   });
 });
 
@@ -130,7 +130,7 @@ app.get(
       if (request.accepts("html")) {
         response.render("elections", {
           title: "Election page",
-          userName: loggedInUser,
+          name: loggedInUser,
           elections,
         });
       } else {
@@ -167,6 +167,7 @@ app.get(
         id: request.params.id,
         title: election.electionName,
         noOfQuestions,
+        csrfToken: request.csrfToken(),
       });
     } catch (error) {
       console.log(error);
@@ -212,6 +213,38 @@ app.get(
   }
 );
 
+app.get(
+  "/elections/:id/questions/:questionId",
+  connectEnsureLogin.ensureLoggedIn(),
+  async (request, response) => {
+    if (!request.body.optionname) {
+      request.flash("error", "Option can not be empty");
+      return response.redirect("/create_option");
+    }
+    try {
+      const question = await Questions.getQuestion(request.params.questionId);
+      const options = await Options.optionsList(request.params.questionId);
+      if (request.accepts("html")) {
+        response.render("create_option", {
+          title: question.questionName,
+          description: question.description,
+          id: request.params.id,
+          questionId: request.params.questionId,
+          options,
+          csrfToken: request.csrfToken(),
+        });
+      } else {
+        return response.json({
+          options,
+        });
+      }
+    } catch (error) {
+      console.log(error);
+      return response.status(422).json(error);
+    }
+  }
+);
+
 app.post("/admins", async (request, response) => {
   //we are using hashedpw to encrypt
   if (!request.body.firstName) {
@@ -242,6 +275,7 @@ app.post("/admins", async (request, response) => {
         console.log(err);
         response.redirect("/");
       } else {
+        request.flash("success", "Signup successfully!!");
         response.redirect("/elections");
       }
     });
@@ -256,6 +290,10 @@ app.post(
   "/elections",
   connectEnsureLogin.ensureLoggedIn(),
   async (request, response) => {
+    if (request.body.electionName.length === 0) {
+      request.flash("error", "election name can not be empty!!");
+      return response.redirect("/elections/create");
+    }
     if (request.body.electionName.length < 5) {
       request.flash("error", "Election name length should be atleast 5");
       return response.redirect("/elections/create");
@@ -278,6 +316,12 @@ app.post(
   "/elections/:id/questions/create",
   connectEnsureLogin.ensureLoggedIn(),
   async (request, response) => {
+    if (!request.body.questionName.length) {
+      request.flash("error", "Please enter question");
+      return response.redirect(
+        `/elections/${request.params.id}/questions/create`
+      );
+    }
     try {
       const question = await Questions.newQuestion({
         questionName: request.body.questionName,
@@ -286,6 +330,28 @@ app.post(
       });
       return response.redirect(
         `/elections/${request.params.id}/questions/${question.id}`
+      );
+    } catch (error) {
+      console.log(error);
+      return response.status(422).json(error);
+    }
+  }
+);
+
+app.post(
+  "/elections/:id/questions/:questionId",
+  connectEnsureLogin.ensureLoggedIn(),
+  async (request, response) => {
+    if (!request.body.option.length) {
+      request.flash("error", "Please enter option");
+    }
+    try {
+      await Options.newOption({
+        option: request.body.option,
+        questionId: request.params.questionId,
+      });
+      return response.redirect(
+        `/elections/${request.params.id}/questions/${request.params.questionId}`
       );
     } catch (error) {
       console.log(error);

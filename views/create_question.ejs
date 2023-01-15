@@ -22,23 +22,23 @@
             <span class="text-2xl font-light ">Add a new Question</span>
             
             <div class="mt-4 bg-white shadow-md rounded-lg text-left">
+                <div>
+                    <% if (messages && messages.error && messages.error.length > 0) { %>
+                        <% for(var i=0; i<messages.error.length; i++) { %>
+                            <p class="bg-purple-100 my-3 list-none rounded-md px-4 py-2"><%= messages.error[i] %></p>
+                        <% } %>
+                    <% } %>
+                </div>
                 <form action="/elections/<%= id %>/questions/create" method="post" class="px-8 py-6">
                     <input type="hidden" name="_csrf" value="<%= csrfToken %>" />
                     <label for="questionName" class="block mt-3 font-semibold">What is the question?</label>
-                    <input id="questionName" name="questionName" type="text" placeholder="Question" class="border w-full h-5 px-3 py-5 mt-2 hover:outline-none focus:outline-none focus:ring-indigo-500 focus:ring-1 rounded-md" required>
+                    <input id="questionName" name="questionName" type="text" placeholder="Question" class="border w-full h-5 px-3 py-5 mt-2 hover:outline-none focus:outline-none focus:ring-indigo-500 focus:ring-1 rounded-md">
                     <label for="description" class="block mt-3 font-semibold">Description of the question</label>
                     <textarea id="description" name="description" class="border w-full px-2 py-1 mt-2 hover:outline-none focus:outline-none focus:ring-indigo-500 focus:ring-1 rounded-md" placeholder="Description" rows="4" cols="20"></textarea>
-                    <button type="submit" class="mt-6 w-full bg-black text-white py-2 px-6 rounded-md hover:bg-white hover:text-black ">Add new question</button>
+                    <button type="submit" class="mt-6 w-full bg-black text-white py-2 px-6 rounded-md">Add new question</button>
                 </form>
             </div>
         </div>
-    </div>
-    <div>
-        <% if (messages && messages.error && messages.error.length > 0) { %>
-            <% for(var i=0; i<messages.error.length; i++) { %>
-                <p class="bg-purple-100 my-3 list-none rounded-md px-4 py-2"><%= messages.error[i] %></p>
-            <% } %>
-        <% } %>
     </div>
 </div>
 </div>
